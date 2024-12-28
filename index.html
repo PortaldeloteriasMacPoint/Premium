@@ -39,7 +39,7 @@
       left: 0;
       height: 100%;
       width: 250px;
-      background-color: black;
+      background-color: #004d00; /* Verde escuro */
       box-shadow: 2px 0 5px rgba(0, 0, 0, 0.5);
       padding: 5px;
       transform: translateX(-100%);
@@ -51,18 +51,22 @@
       padding: 0;
       margin: 0;
     }
+    .menu-lateral ul li {
+      margin-bottom: 15px;
+    }
     .menu-lateral ul li a {
       text-decoration: none;
       text-align: center;
-      color: black;
-      background-color: white;
+      color: white; /* Escrita branca */
+      background-color: white; /* Botão branco */
+      border: 2px solid #00ff00; /* Borda verde claro */
       padding: 10px 15px;
       border-radius: 10px;
       display: block;
       transition: all 0.3s ease-in-out;
     }
     .menu-lateral ul li a:hover {
-      background-color: #00b300;
+      background-color: #00b300; /* Verde mais escuro no hover */
     }
     .menu-lateral.aberto {
       transform: translateX(0);
@@ -75,18 +79,6 @@
       width: 100%;
       height: 100vh;
       object-fit: cover;
-    }
-    .subcapa {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background-image: url('plano-de-fundo.jpg');
-      background-size: cover;
-      background-position: center;
-      opacity: 0.6;
-      z-index: 90;
     }
     footer {
       text-align: center;
@@ -114,7 +106,6 @@
     </ul>
   </nav>
   <main class="home" onclick="closeMenu()">
-    <div class="subcapa"></div>
     <h1>Bem-vindo ao Portal de Loterias - Mac Point</h1>
     <img src="capa.jpg" alt="Imagem de Capa" class="capa">
     <p>Nosso portal oferece conteúdo exclusivo para ajudá-lo a entender melhor as estatísticas e estratégias por trás das principais modalidades de loterias brasileiras. Aproveite!</p>
