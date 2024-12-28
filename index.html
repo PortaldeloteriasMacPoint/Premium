@@ -14,12 +14,14 @@
       background-color: #000;
       color: #fff;
     }
+
     .menu-hamburguer {
       position: fixed;
       top: 10px;
       left: 10px;
       z-index: 1000;
     }
+
     .menu-hamburguer button {
       background-color: #000;
       color: white;
@@ -30,57 +32,77 @@
       font-size: 1.2em;
       transition: background-color 0.3s;
     }
+
     .menu-hamburguer button:hover {
       background-color: #004d00;
     }
+
     .menu-lateral {
       position: fixed;
       top: 0;
       left: 0;
       height: 100%;
       width: 250px;
-      background-color: #004d00; /* Verde escuro */
+      background-color: #004d00;
       box-shadow: 2px 0 5px rgba(0, 0, 0, 0.5);
       padding: 5px;
       transform: translateX(-100%);
       transition: transform 0.3s ease-in-out;
       z-index: 1100;
     }
+
     .menu-lateral ul {
       list-style: none;
       padding: 0;
       margin: 0;
     }
+
     .menu-lateral ul li {
       margin-bottom: 15px;
     }
+
     .menu-lateral ul li a {
       text-decoration: none;
       text-align: center;
-      color: black; /* Escrita preta */
-      font-weight: bold; /* Negrito */
-      background-color: white; /* Botão branco */
-      border: 2px solid #00ff00; /* Borda verde claro */
+      color: black;
+      font-weight: bold;
+      background-color: white;
+      border: 2px solid #00ff00;
       padding: 10px 15px;
       border-radius: 10px;
       display: block;
       transition: all 0.3s ease-in-out;
     }
+
     .menu-lateral ul li a:hover {
-      background-color: #00b300; /* Verde mais escuro no hover */
+      background-color: #00b300;
     }
+
     .menu-lateral.aberto {
       transform: translateX(0);
     }
+
     .home {
       text-align: center;
       padding: 40px 20px;
     }
-    .home img.capa {
-      width: 100%;
-      height: 100vh;
-      object-fit: cover;
+
+    .quadro {
+      background-color: #004d00;
+      border: 3px solid #00ff00;
+      border-radius: 10px;
+      margin: 20px auto;
+      padding: 20px;
+      max-width: 90%;
+      text-align: center;
     }
+
+    .quadro img.capa {
+      width: 100%;
+      height: auto;
+      border-radius: 10px;
+    }
+
     footer {
       text-align: center;
       padding: 20px;
@@ -107,9 +129,15 @@
     </ul>
   </nav>
   <main class="home" onclick="closeMenu()">
-    <h1>Bem-vindo ao Portal de Loterias - Mac Point</h1>
-    <img src="capa.jpg" alt="Imagem de Capa" class="capa">
-    <p>Nosso portal oferece conteúdo exclusivo para ajudá-lo a entender melhor as estatísticas e estratégias por trás das principais modalidades de loterias brasileiras. Aproveite!</p>
+    <div class="quadro">
+      <h1>Bem-vindo ao Portal de Loterias - Mac Point</h1>
+    </div>
+    <div class="quadro">
+      <img src="capa.jpg" alt="Imagem de Capa" class="capa">
+    </div>
+    <div class="quadro">
+      <p>Nosso portal oferece conteúdo exclusivo para ajudá-lo a entender melhor as estatísticas e estratégias por trás das principais modalidades de loterias brasileiras. Aproveite!</p>
+    </div>
   </main>
   <footer>
     <p>Mac Point é um site independente dedicado a fornecer análises, ferramentas e informações sobre as loterias brasileiras. Não temos vínculo com a Caixa Econômica Federal ou qualquer outra entidade governamental. Para resultados oficiais, consulte os canais oficiais de cada loteria.</p>
@@ -120,6 +148,7 @@
       const menu = document.getElementById('menuLateral');
       menu.classList.toggle('aberto');
     }
+
     function closeMenu() {
       const menu = document.getElementById('menuLateral');
       menu.classList.remove('aberto');
