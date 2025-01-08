@@ -1,3 +1,5 @@
+
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -69,7 +71,7 @@
 <body>
     <div class="form-container">
         <h1>Cadastro</h1>
-        <form action="#" method="POST">
+        <form id="cadastro-form" action="#" method="POST">
             <div class="form-group">
                 <label for="nome">Nome Completo:</label>
                 <input type="text" id="nome" name="nome" required>
@@ -98,6 +100,18 @@
             <p>Já tem uma conta? <a href="login.html">Acesse o login</a></p>
         </div>
     </div>
+
+    <script>
+        document.getElementById('cadastro-form').addEventListener('submit', function(event) {
+            const senha = document.getElementById('senha').value;
+            const confirmarSenha = document.getElementById('confirmar-senha').value;
+
+            if (senha !== confirmarSenha) {
+                event.preventDefault();
+                alert('As senhas não coincidem. Tente novamente.');
+            }
+        });
+    </script>
 </body>
 </html>
 
