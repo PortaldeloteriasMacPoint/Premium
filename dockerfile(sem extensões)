@@ -1,0 +1,11 @@
+# Usa a imagem oficial do PHP com Apache
+FROM php:7.4-apache
+
+# Habilita o módulo mod_rewrite do Apache
+RUN a2enmod rewrite
+
+# Copia o código do seu projeto para dentro do container
+COPY . /var/www/html/
+
+# Expõe a porta 80 para acessar o Apache
+EXPOSE 80
