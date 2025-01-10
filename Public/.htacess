@@ -1,5 +1,22 @@
+
 RewriteEngine On
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
 RewriteRule ^ index.php [L]
+
+# CORS (Cross-Origin Resource Sharing)
+<IfModule mod_headers.c>
+    # Permitir CORS do seu GitHub Pages
+    Header set Access-Control-Allow-Origin "https://portaldeloteriasmacpoint.github.io"
+    # Permitir os métodos que você está utilizando
+    Header set Access-Control-Allow-Methods "GET, POST, OPTIONS"
+    # Permitir cabeçalhos necessários
+    Header set Access-Control-Allow-Headers "Content-Type, Authorization"
+</IfModule>
+
+# Resposta a requisições OPTIONS (se necessário)
+<IfModule mod_rewrite.c>
+    RewriteCond %{REQUEST_METHOD} OPTIONS
+    RewriteRule ^(.*)$ $1 [L]
+</IfModule>
 
