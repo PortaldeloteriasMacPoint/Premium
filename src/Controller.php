@@ -41,7 +41,27 @@ class Controller
             return;
         }
 
+        if (!$this->isSubscriptionActive($userData)) {
+            header("HTTP/1.1 403 Forbidden");
+            echo json_encode(["error" => "Subscription expired"]);
+            return;
+        }
+
         echo json_encode($userData);
+    }
+
+    private function isSubscriptionActive($userData)
+    {
+        if (!isset($userData['status']) || $userData['status'] !== 'ativo') {
+            return false;
+        }
+
+        if (!isset($userData['subscriptionEndDate'])) {
+            return false;
+        }
+
+        $expirationDate = strtotime($userData['subscriptionEndDate']);
+        return $expirationDate > time();
     }
 }
 
