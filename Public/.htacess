@@ -6,7 +6,7 @@ RewriteRule ^ index.php [L]
 # CORS (Cross-Origin Resource Sharing)
 <IfModule mod_headers.c>
     # Permitir CORS do seu GitHub Pages
-    Header set Access-Control-Allow-Origin "https://portaldeloteriasmacpoint.github.io"
+    Header set Access-Control-Allow-Origin "https://portaldeloteriasmacpoint.github.io/Mac-Point--Premium/"
     # Permitir os métodos que você está utilizando
     Header set Access-Control-Allow-Methods "GET, POST, OPTIONS"
     # Permitir cabeçalhos necessários
