@@ -4,9 +4,6 @@ namespace App;
 
 use Firebase\Auth\Token\Exception\InvalidToken;
 use Firebase\Auth\Token\Verifier;
-use Firebase\JWT\JWT;
-use Firebase\Auth\Token\Handler;
-use Firebase\ServiceAccount;
 
 class Auth
 {
@@ -45,6 +42,5 @@ class Auth
         return $ref->getValue();
     }
 }
-
 
 
