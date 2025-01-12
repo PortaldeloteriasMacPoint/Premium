@@ -41,7 +41,7 @@ class Controller
             return;
         }
 
-        if (!$this->isSubscriptionActive($userData)) {
+        if (!$this->isPlanActive($userData)) {
             header("HTTP/1.1 403 Forbidden");
             echo json_encode(["error" => "Subscription expired"]);
             return;
@@ -50,18 +50,20 @@ class Controller
         echo json_encode($userData);
     }
 
-    private function isSubscriptionActive($userData)
+    private function isPlanActive($userData)
     {
-        if (!isset($userData['status']) || $userData['status'] !== 'ativo') {
+        $expiryDate = $userData['subscriptionEndDate'] ?? null;
+
+        if (!$expiryDate) {
             return false;
         }
 
-        if (!isset($userData['subscriptionEndDate'])) {
-            return false;
-        }
+        $expiryTimestamp = strtotime($expiryDate);
+        $currentTimestamp = time();
 
-        $expirationDate = strtotime($userData['subscriptionEndDate']);
-        return $expirationDate > time();
+        return $expiryTimestamp > $currentTimestamp;
     }
 }
+
+
 
