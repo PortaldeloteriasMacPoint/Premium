@@ -1,6 +1,5 @@
 <?php
 
-use Firebase\Auth\Token\Exception\InvalidToken;
 use Firebase\Factory;
 use Firebase\ServiceAccount;
 
