@@ -24,5 +24,14 @@ class Database
         $this->database->getReference('users/' . $uid)
             ->set($data);
     }
+
+    public function updateUserPlanStatus($uid, $status, $expirationDate)
+    {
+        $this->database->getReference('users/' . $uid)
+            ->update([
+                'status' => $status,
+                'subscriptionEndDate' => $expirationDate
+            ]);
+    }
 }
 
