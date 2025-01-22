@@ -1,13 +1,17 @@
 <?php
-$servername = "localhost";
-$username = "root";
-$password = "";
-$dbname = "caso_animais";
+$host = 'localhost'; // ou IP do servidor de banco de dados
+$user = 'root'; // seu usuário do MySQL
+$password = ''; // sua senha do MySQL
+$dbname = 'sistema_acesso'; // nome do banco de dados
 
-$conn = new mysqli($servername, $username, $password, $dbname);
+// Cria a conexão
+$conn = new mysqli($host, $user, $password, $dbname);
 
+// Verifica a conexão
 if ($conn->connect_error) {
-    die("Conexão falhou: " . $conn->connect_error);
+    die("Erro de conexão: " . $conn->connect_error);
+} else {
+    echo "Conexão bem-sucedida!";
 }
 ?>
 
