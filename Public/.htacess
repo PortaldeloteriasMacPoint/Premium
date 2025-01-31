@@ -18,4 +18,12 @@ RewriteRule ^ index.php [L]
     RewriteCond %{REQUEST_METHOD} OPTIONS
     RewriteRule ^(.*)$ $1 [L]
 </IfModule>
+# Impede o acesso direto aos arquivos de configuração e credenciais do Firebase
+<Files "config.php">
+    Order Allow,Deny
+    Deny from all
+</Files>
+
+# Garantir que o PHP use UTF-8 por padrão
+AddDefaultCharset UTF-8
 
