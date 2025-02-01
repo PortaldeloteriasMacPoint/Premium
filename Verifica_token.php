@@ -27,7 +27,7 @@ try {
 
     // Lista de e-mails autorizados no PHP
     $usuarios_autorizados = [
-        "usuario1@gmail.com",
+        "Macklinger1989@gmail.com",
         "usuario2@gmail.com",
         "usuario3@gmail.com",
         "usuario4@gmail.com",
