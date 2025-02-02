@@ -10,7 +10,7 @@ function gerarToken($email) {
 function gerarLink($email, $dias_validade = 30) {
     $token = gerarToken($email);
     $data_expiracao = new DateTime();
-    $data_expiracao->add(new DateInterval("P$dias_validade"D)); // Adiciona 30 dias
+    $data_expiracao->add(new DateInterval("P{$dias_validade}D")); // Correção aqui
 
     // Formata a data para o formato Y-m-d H:i:s
     $data_expiracao_formatada = $data_expiracao->format('Y-m-d H:i:s');
