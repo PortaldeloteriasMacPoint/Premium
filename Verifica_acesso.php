@@ -1,29 +1,34 @@
 
 
 <?php
-session_start();
+$arquivo = "usuarios.txt";
 
-// Verifica se o usuário está autenticado via Firebase
-if (!isset($_SESSION['user'])) {
-    header("Location: login.php");
-    exit;
+function verificarAcesso($email, $senha) {
+    global $arquivo;
+    $usuarios = file($arquivo);
+
+    foreach ($usuarios as $linha) {
+        $dados = explode("|", trim($linha));
+        if ($dados[0] == $email && $dados[1] == $senha) {
+            if ($dados[3] == "bloqueado") {
+                return "acesso_negado";
+            } else {
+                return "acesso_permitido";
+            }
+        }
+    }
+    return "usuario_nao_encontrado";
 }
 
-$user_email = $_SESSION['user']->email;
+// Teste de acesso
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    $email = $_POST['email'];
+    $senha = $_POST['senha'];
 
-// Lista de e-mails autorizados (pode ser uma lista fixa ou lida de um arquivo)
-$autorizados = [
-    'mikeponte@gmail.com',
-    'usuario@dominio.com'
-];
+    $resultado = verificarAcesso($email, $senha);
 
-// Verifica se o e-mail do usuário autenticado está na lista de autorizados
-if (in_array($user_email, $autorizados)) {
-    echo "Acesso Liberado! Você tem permissão para acessar o conteúdo.";
-    // Coloque aqui o conteúdo restrito que só quem tem permissão vai acessar
-} else {
-    echo "Acesso Negado! Você não tem permissão para acessar este conteúdo.";
-    // Pode redirecionar ou mostrar uma mensagem de erro
+    echo json_encode(["status" => $resultado]);
+    exit;
 }
 ?>
 
