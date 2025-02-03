@@ -1,4 +1,3 @@
-Aqui está o código do verificar_acesso.php:
 
 <?php
 header("Content-Type: application/json");
