@@ -1,9 +1,57 @@
+
+
+<?php
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['gerar'])) {
+    require __DIR__ . '/vendor/autoload.php';
+
+    use Kreait\Firebase\Factory;
+    use Kreait\Firebase\ServiceAccount;
+
+    $serviceAccount = ServiceAccount::fromJsonFile(__DIR__.'/seu-arquivo-chave.json'); 
+    $firebase = (new Factory)->withServiceAccount($serviceAccount)->createFirestore();
+    $firestore = $firebase->database();
+
+    // Gerar senha aleatória
+    $senha = bin2hex(random_bytes(5));
+    $senha_hash = password_hash($senha, PASSWORD_DEFAULT);
+
+    // Capturar dados do formulário
+    $nome = $_POST['nome'];
+    $email = $_POST['email'];
+    $plano = $_POST['plano'];
+
+    // Definir data de expiração
+    $data_atual = new DateTime();
+    if ($plano == "mensal") {
+        $data_atual->modify('+30 days');
+    } elseif ($plano == "trimestral") {
+        $data_atual->modify('+90 days');
+    } else {
+        $data_atual->modify('+365 days');
+    }
+    $data_expiracao = $data_atual->format('Y-m-d');
+
+    // Salvar no Firestore
+    $firestore->collection('usuarios')->document($email)->set([
+        'nome' => $nome,
+        'email' => $email,
+        'senha' => $senha_hash,
+        'expiracao' => $data_expiracao,
+        'bloqueado' => false
+    ]);
+
+    $mensagem = "Senha gerada com sucesso: $senha";
+} else {
+    $mensagem = "";
+}
+?>
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gerar Senha - Portal Premium</title>
+    <title>Gerar Senha</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -47,7 +95,7 @@
 <body>
 
 <div class="container">
-    <h2>Gerar Senha para Usuário</h2>
+    <h2>Gerar Senha</h2>
     <form method="POST">
         <label for="nome">Nome:</label>
         <input type="text" id="nome" name="nome" required>
@@ -65,49 +113,7 @@
         <button type="submit" name="gerar">Gerar Senha</button>
     </form>
 
-    <?php
-    if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['gerar'])) {
-        require __DIR__ . '/vendor/autoload.php';
-
-        use Kreait\Firebase\Factory;
-        use Kreait\Firebase\ServiceAccount;
-
-        $serviceAccount = ServiceAccount::fromJsonFile(__DIR__.'/seu-arquivo-chave.json'); 
-        $firebase = (new Factory)->withServiceAccount($serviceAccount)->createFirestore();
-        $firestore = $firebase->database();
-
-        // Gerar senha aleatória
-        $senha = bin2hex(random_bytes(5));
-        $senha_hash = password_hash($senha, PASSWORD_DEFAULT);
-
-        // Capturar dados do formulário
-        $nome = $_POST['nome'];
-        $email = $_POST['email'];
-        $plano = $_POST['plano'];
-
-        // Definir data de expiração
-        $data_atual = new DateTime();
-        if ($plano == "mensal") {
-            $data_atual->modify('+30 days');
-        } elseif ($plano == "trimestral") {
-            $data_atual->modify('+90 days');
-        } else {
-            $data_atual->modify('+365 days');
-        }
-        $data_expiracao = $data_atual->format('Y-m-d');
-
-        // Salvar no Firestore
-        $firestore->collection('usuarios')->document($email)->set([
-            'nome' => $nome,
-            'email' => $email,
-            'senha' => $senha_hash,
-            'expiracao' => $data_expiracao,
-            'bloqueado' => false
-        ]);
-
-        echo "<p><strong>Senha gerada:</strong> $senha</p>";
-    }
-    ?>
+    <?php if (!empty($mensagem)) echo "<p><strong>$mensagem</strong></p>"; ?>
 </div>
 
 </body>
