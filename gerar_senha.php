@@ -1,125 +1,78 @@
+
 <?php
+// Configuração do Firestore
 require 'vendor/autoload.php';
 
 use Google\Cloud\Firestore\FirestoreClient;
 
-// Configura a chave do Firebase
-putenv('GOOGLE_APPLICATION_CREDENTIALS=' . ($_ENV['GOOGLE_APPLICATION_CREDENTIALS'] ?? '/caminho/para/seu/json.json'));
+// Configurações do Firebase
+$firestore = new FirestoreClient([
+    'projectId' => 'mac-projeto-4e552',
+]);
 
-$firestore = new FirestoreClient();
-
-function gerarSenha($tamanho = 12) {
+// Função para gerar senha aleatória
+function gerarSenha($tamanho = 10) {
+    // Gera uma senha de tamanho desejado (padrão 10 caracteres)
     return bin2hex(random_bytes($tamanho / 2));
 }
 
-$mensagem = "";
-$senhaGerada = "";
+// Processamento do formulário
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    $nome = $_POST["nome"] ?? '';
+    $email = $_POST["email"] ?? '';
+    $plano = $_POST["plano"] ?? '';
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $nome = $_POST['nome'] ?? null;
-    $email = $_POST['email'] ?? null;
-    $plano = $_POST['plano'] ?? null;
+    if (!empty($nome) && !empty($email) && !empty($plano)) {
+        // Gera a senha
+        $senha = gerarSenha(); 
+        // Gera o hash da senha para segurança
+        $senhaHash = password_hash($senha, PASSWORD_BCRYPT); 
 
-    $validadeDias = match ($plano) {
-        'mensal' => 30,
-        'trimestral' => 90,
-        'anual' => 365,
-        default => null
-    };
+        // Calcula validade do plano
+        $diasPlano = [
+            "mensal" => 30,
+            "trimestral" => 90,
+            "anual" => 365
+        ];
+        $validade = date('Y-m-d', strtotime("+{$diasPlano[$plano]} days"));
 
-    if ($nome && $email && $plano && $validadeDias) {
-        $senha = gerarSenha();
-        $senhaHash = password_hash($senha, PASSWORD_DEFAULT);
-        $dataExpiracao = date('Y-m-d', strtotime("+$validadeDias days"));
-
-        $dadosUsuario = [
+        // Salvar no Firestore com hash da senha
+        $firestore->collection('users')->document($email)->set([
             'nome' => $nome,
             'email' => $email,
-            'senha' => $senhaHash,
+            'senha' => $senhaHash, // Armazena a senha com hash
             'plano' => $plano,
-            'validade' => $validadeDias,
-            'dataExpiracao' => $dataExpiracao,
-            'status' => 'ativo',
-        ];
+            'validade' => $validade,
+            'status' => 'ativo'
+        ]);
 
-        try {
-            $firestore->collection('users')->document($email)->set($dadosUsuario);
-            $mensagem = "Usuário registrado com sucesso!";
-            $senhaGerada = $senha;
-        } catch (Exception $e) {
-            $mensagem = "Erro ao salvar no Firestore: " . $e->getMessage();
-        }
+        // Exibe a senha gerada na tela para o usuário copiar
+        echo "Usuário cadastrado com sucesso! A senha gerada é: <strong>$senha</strong><br>";
     } else {
-        $mensagem = "Preencha todos os campos corretamente!";
+        echo "Erro: Preencha todos os campos!";
     }
 }
 ?>
 
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gerar Senha</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: black;
-            color: white;
-            text-align: center;
-            padding: 20px;
-        }
-        .container {
-            width: 300px;
-            margin: auto;
-            background: #006400;
-            padding: 20px;
-            border-radius: 10px;
-            border: 2px solid #00ff00;
-        }
-        input, select, button {
-            width: 100%;
-            padding: 10px;
-            margin: 5px 0;
-            border-radius: 5px;
-        }
-        button {
-            background: #00ff00;
-            border: none;
-            cursor: pointer;
-        }
-        .mensagem {
-            margin-top: 10px;
-            color: yellow;
-        }
-    </style>
+    <title>Gerenciamento de Usuários</title>
 </head>
 <body>
-
-    <h1>Gerar Senha para Usuário</h1>
-    <div class="container">
-        <form method="POST">
-            <input type="text" name="nome" placeholder="Nome do Usuário" required>
-            <input type="email" name="email" placeholder="E-mail do Usuário" required>
-            <select name="plano" required>
-                <option value="">Selecione um Plano</option>
-                <option value="mensal">Mensal (30 dias)</option>
-                <option value="trimestral">Trimestral (90 dias)</option>
-                <option value="anual">Anual (365 dias)</option>
-            </select>
-            <button type="submit">Gerar Senha</button>
-        </form>
-
-        <?php if ($mensagem): ?>
-            <p class="mensagem"><?= htmlspecialchars($mensagem) ?></p>
-        <?php endif; ?>
-
-        <?php if ($senhaGerada): ?>
-            <p class="mensagem">Senha gerada: <strong><?= htmlspecialchars($senhaGerada) ?></strong></p>
-        <?php endif; ?>
-    </div>
-
+    <h2>Gerar Senha e Cadastrar Usuário</h2>
+    <form action="" method="post">
+        Nome: <input type="text" name="nome" required><br>
+        E-mail: <input type="email" name="email" required><br>
+        Plano:
+        <select name="plano" required>
+            <option value="mensal">Mensal</option>
+            <option value="trimestral">Trimestral</option>
+            <option value="anual">Anual</option>
+        </select><br>
+        <button type="submit">Cadastrar</button>
+    </form>
 </body>
 </html>
-
-
