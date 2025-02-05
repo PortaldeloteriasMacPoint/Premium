@@ -1,60 +1,113 @@
-
-
-<?php
-// Função para gerar senha aleatória
-function gerarSenha($tamanho = 10) {
-    return substr(str_shuffle("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"), 0, $tamanho);
-}
-
-// Verifica se o formulário foi enviado
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $nome = $_POST["nome"];
-    $email = $_POST["email"];
-    $plano = $_POST["plano"];
-    $senha = gerarSenha(); // Gera senha automática
-    $dataExpiracao = date("Y-m-d", strtotime("+30 days")); // Expira em 30 dias
-    $status = "ativo"; // Status inicial
-
-    // Salva no arquivo usuarios.txt
-    $dados = "$email|$senha|$dataExpiracao|$status\n";
-    file_put_contents("usuarios.txt", $dados, FILE_APPEND);
-
-    echo "<p style='color:green; font-weight:bold;'>Usuário cadastrado com sucesso!</p>";
-    echo "<p><b>Nome:</b> $nome</p>";
-    echo "<p><b>E-mail:</b> $email</p>";
-    echo "<p><b>Plano:</b> $plano</p>";
-    echo "<p><b>Senha Gerada:</b> <span style='color:red;'>$senha</span></p>";
-}
-?>
-
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gerar Senha</title>
+    <title>Gerar Senha - Portal Premium</title>
     <style>
-        body { font-family: Arial, sans-serif; background-color: #000; color: #fff; text-align: center; }
-        .container { width: 300px; margin: auto; background: #222; padding: 20px; border-radius: 10px; }
-        input, select { width: 100%; padding: 10px; margin-bottom: 10px; border-radius: 5px; background: #333; color: white; }
-        button { background: orange; border: none; padding: 10px; border-radius: 5px; cursor: pointer; }
-        button:hover { background: darkorange; }
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #121212;
+            color: white;
+            text-align: center;
+            padding: 20px;
+        }
+        .container {
+            background: #1e1e1e;
+            padding: 20px;
+            border-radius: 10px;
+            display: inline-block;
+            text-align: left;
+        }
+        label, input, select, button {
+            display: block;
+            margin-bottom: 10px;
+            width: 100%;
+        }
+        input, select {
+            padding: 8px;
+            border-radius: 5px;
+            border: 1px solid #333;
+            background: #333;
+            color: white;
+        }
+        button {
+            background: green;
+            color: white;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: darkgreen;
+        }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2>Gerar Senha</h2>
+    <h2>Gerar Senha para Usuário</h2>
     <form method="POST">
-        <input type="text" name="nome" placeholder="Nome" required>
-        <input type="email" name="email" placeholder="E-mail" required>
-        <select name="plano" required>
+        <label for="nome">Nome:</label>
+        <input type="text" id="nome" name="nome" required>
+
+        <label for="email">E-mail:</label>
+        <input type="email" id="email" name="email" required>
+
+        <label for="plano">Plano:</label>
+        <select id="plano" name="plano" required>
             <option value="mensal">Mensal</option>
-            <option value="premium">Premium</option>
+            <option value="trimestral">Trimestral</option>
             <option value="anual">Anual</option>
         </select>
-        <button type="submit">Gerar Senha</button>
+
+        <button type="submit" name="gerar">Gerar Senha</button>
     </form>
+
+    <?php
+    if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['gerar'])) {
+        require __DIR__ . '/vendor/autoload.php';
+
+        use Kreait\Firebase\Factory;
+        use Kreait\Firebase\ServiceAccount;
+
+        $serviceAccount = ServiceAccount::fromJsonFile(__DIR__.'/seu-arquivo-chave.json'); 
+        $firebase = (new Factory)->withServiceAccount($serviceAccount)->createFirestore();
+        $firestore = $firebase->database();
+
+        // Gerar senha aleatória
+        $senha = bin2hex(random_bytes(5));
+        $senha_hash = password_hash($senha, PASSWORD_DEFAULT);
+
+        // Capturar dados do formulário
+        $nome = $_POST['nome'];
+        $email = $_POST['email'];
+        $plano = $_POST['plano'];
+
+        // Definir data de expiração
+        $data_atual = new DateTime();
+        if ($plano == "mensal") {
+            $data_atual->modify('+30 days');
+        } elseif ($plano == "trimestral") {
+            $data_atual->modify('+90 days');
+        } else {
+            $data_atual->modify('+365 days');
+        }
+        $data_expiracao = $data_atual->format('Y-m-d');
+
+        // Salvar no Firestore
+        $firestore->collection('usuarios')->document($email)->set([
+            'nome' => $nome,
+            'email' => $email,
+            'senha' => $senha_hash,
+            'expiracao' => $data_expiracao,
+            'bloqueado' => false
+        ]);
+
+        echo "<p><strong>Senha gerada:</strong> $senha</p>";
+    }
+    ?>
 </div>
 
 </body>
