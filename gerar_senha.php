@@ -1,48 +1,51 @@
-
-
 <?php
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['gerar'])) {
-    require __DIR__ . '/vendor/autoload.php';
+require __DIR__ . '/vendor/autoload.php';
 
-    use Kreait\Firebase\Factory;
-    use Kreait\Firebase\ServiceAccount;
+use Kreait\Firebase\Factory;
+use Kreait\Firebase\ServiceAccount;
 
-    $serviceAccount = ServiceAccount::fromJsonFile(__DIR__.'/seu-arquivo-chave.json'); 
+try {
+    // Conectar ao Firebase Firestore
+    $serviceAccount = ServiceAccount::fromJsonFile(__DIR__.'/firebase-key.json');
     $firebase = (new Factory)->withServiceAccount($serviceAccount)->createFirestore();
     $firestore = $firebase->database();
 
-    // Gerar senha aleatória
-    $senha = bin2hex(random_bytes(5));
-    $senha_hash = password_hash($senha, PASSWORD_DEFAULT);
-
-    // Capturar dados do formulário
-    $nome = $_POST['nome'];
-    $email = $_POST['email'];
-    $plano = $_POST['plano'];
-
-    // Definir data de expiração
-    $data_atual = new DateTime();
-    if ($plano == "mensal") {
-        $data_atual->modify('+30 days');
-    } elseif ($plano == "trimestral") {
-        $data_atual->modify('+90 days');
-    } else {
-        $data_atual->modify('+365 days');
-    }
-    $data_expiracao = $data_atual->format('Y-m-d');
-
-    // Salvar no Firestore
-    $firestore->collection('usuarios')->document($email)->set([
-        'nome' => $nome,
-        'email' => $email,
-        'senha' => $senha_hash,
-        'expiracao' => $data_expiracao,
-        'bloqueado' => false
-    ]);
-
-    $mensagem = "Senha gerada com sucesso: $senha";
-} else {
     $mensagem = "";
+
+    if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['gerar'])) {
+        // Gerar senha aleatória
+        $senha = bin2hex(random_bytes(5));
+        $senha_hash = password_hash($senha, PASSWORD_DEFAULT);
+
+        // Capturar dados do formulário
+        $nome = trim($_POST['nome']);
+        $email = trim($_POST['email']);
+        $plano = trim($_POST['plano']);
+
+        // Definir data de expiração
+        $data_atual = new DateTime();
+        if ($plano == "mensal") {
+            $data_atual->modify('+30 days');
+        } elseif ($plano == "trimestral") {
+            $data_atual->modify('+90 days');
+        } else {
+            $data_atual->modify('+365 days');
+        }
+        $data_expiracao = $data_atual->format('Y-m-d');
+
+        // Salvar no Firestore
+        $firestore->collection('usuarios')->document($email)->set([
+            'nome' => $nome,
+            'email' => $email,
+            'senha' => $senha_hash,
+            'expiracao' => $data_expiracao,
+            'bloqueado' => false
+        ]);
+
+        $mensagem = "Senha gerada com sucesso: <strong>$senha</strong>";
+    }
+} catch (Exception $e) {
+    $mensagem = "Erro: " . $e->getMessage();
 }
 ?>
 
