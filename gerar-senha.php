@@ -1,58 +1,76 @@
 
 
 <?php
-// Configuração do Firestore usando credenciais do ambiente
-putenv('GOOGLE_APPLICATION_CREDENTIALS=/path/to/your/firebase_credentials.json'); // Certifique-se de que a variável de ambiente esteja configurada corretamente no Render
+// Definir cabeçalhos para evitar cache
+header("Expires: Tue, 01 Jan 2000 00:00:00 GMT");
+header("Last-Modified: " . gmdate("D, d M Y H:i:s") . " GMT");
+header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
+header("Cache-Control: post-check=0, pre-check=0", false);
+header("Pragma: no-cache");
 
-use Google\Cloud\Firestore\FirestoreClient;
+// Carregar a chave privada do ambiente do Render
+$googleCredentialsPath = getenv("GOOGLE_APPLICATION_CREDENTIALS");
+if (!$googleCredentialsPath || !file_exists($googleCredentialsPath)) {
+    die("Erro: Credenciais do Firestore não encontradas.");
+}
 
-// Dados do formulário (nome, e-mail, plano)
-if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    $email = $_POST['email'];
-    $nome = $_POST['nome'];
-    $plano = $_POST['plano'];
+$credentials = json_decode(file_get_contents($googleCredentialsPath), true);
+$firestoreProject = $credentials['project_id'];
 
-    // Gerar uma senha aleatória
-    $senhaGerada = bin2hex(random_bytes(4));  // Exemplo de senha gerada
+// API Firestore
+$firestoreUrl = "https://firestore.googleapis.com/v1/projects/$firestoreProject/databases/(default)/documents/users";
 
-    // Criar hash da senha para segurança
-    $senhaHash = password_hash($senhaGerada, PASSWORD_BCRYPT);
+// Verifica se os dados foram enviados pelo formulário
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    $nome = $_POST['nome'] ?? '';
+    $email = $_POST['email'] ?? '';
+    $plano = $_POST['plano'] ?? 'mensal';
 
-    // Definir validade do plano
-    $validade = date('Y-m-d H:i:s', strtotime("+30 days"));
-    if ($plano == 'trimestral') {
-        $validade = date('Y-m-d H:i:s', strtotime("+90 days"));
-    } elseif ($plano == 'anual') {
-        $validade = date('Y-m-d H:i:s', strtotime("+365 days"));
+    // Verifica se os campos estão preenchidos
+    if (empty($nome) || empty($email)) {
+        $mensagem = "Erro: Todos os campos são obrigatórios.";
+    } else {
+        // Gerar uma senha aleatória
+        $senhaGerada = bin2hex(random_bytes(4));
+
+        // Criar hash da senha
+        $senhaHash = password_hash($senhaGerada, PASSWORD_BCRYPT);
+
+        // Definir validade do plano
+        $validade = date('Y-m-d H:i:s', strtotime("+30 days"));
+        if ($plano == 'trimestral') $validade = date('Y-m-d H:i:s', strtotime("+90 days"));
+        if ($plano == 'anual') $validade = date('Y-m-d H:i:s', strtotime("+365 days"));
+
+        // Criar JSON para Firestore
+        $data = [
+            "fields" => [
+                "nome" => ["stringValue" => $nome],
+                "email" => ["stringValue" => $email],
+                "senha" => ["stringValue" => $senhaHash],
+                "plano" => ["stringValue" => $plano],
+                "validade" => ["stringValue" => $validade],
+                "status" => ["stringValue" => "ativo"]
+            ]
+        ];
+
+        // Enviar para Firestore via API REST
+        $options = [
+            "http" => [
+                "header"  => "Content-Type: application/json",
+                "method"  => "POST",
+                "content" => json_encode($data)
+            ]
+        ];
+
+        $context  = stream_context_create($options);
+        $result = file_get_contents($firestoreUrl, false, $context);
+
+        if ($result) {
+            $mensagem = "Usuário cadastrado com sucesso!<br>Senha gerada: <strong>$senhaGerada</strong>";
+        } else {
+            $mensagem = "Erro ao salvar no Firestore.";
+        }
     }
-
-    // Instanciar o cliente Firestore
-    $firestore = new FirestoreClient();
-
-    // Referência à coleção de usuários no Firestore
-    $usersRef = $firestore->collection('users');
-
-    // Criar dados para salvar no Firestore
-    $data = [
-        'nome' => $nome,
-        'email' => $email,
-        'senha' => $senhaHash,
-        'plano' => $plano,
-        'validade' => $validade,
-        'status' => 'ativo',
-    ];
-
-    // Salvar os dados no Firestore
-    try {
-        $usersRef->add($data);
-        echo "Senha gerada para $email: $senhaGerada";
-        echo "<br>Plano: $plano";
-        echo "<br>Validade do plano: $validade";
-    } catch (Exception $e) {
-        echo "Erro ao salvar no Firestore: " . $e->getMessage();
-    }
-} else {
-    echo "Método inválido!";
 }
 ?>
 
@@ -61,56 +79,64 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gerar Senha e Cadastrar no Firestore</title>
+    <title>Gerar Senha</title>
     <style>
         body {
-            background-color: #000;
-            font-family: Arial, sans-serif;
+            background-color: black;
             color: white;
-        }
-        .form-container {
-            background-color: #006400;
-            padding: 20px;
-            border-radius: 8px;
-            border: 2px solid #00FF00;
-            width: 300px;
-            margin: 50px auto;
+            font-family: Arial, sans-serif;
             text-align: center;
         }
-        input[type="text"], input[type="email"], input[type="submit"] {
-            background-color: #000;
-            color: white;
-            border: 1px solid #00FF00;
-            padding: 10px;
-            margin-bottom: 10px;
-            width: 100%;
-            font-size: 16px;
+        .container {
+            background-color: #004d00;
+            padding: 20px;
+            width: 40%;
+            margin: auto;
+            border-radius: 10px;
+            border: 2px solid #00ff00;
+            margin-top: 50px;
         }
-        input[type="submit"] {
+        input, select {
+            background-color: black;
+            color: white;
+            border: 1px solid #00ff00;
+            padding: 10px;
+            width: 80%;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        button {
             background-color: orange;
+            color: black;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
             cursor: pointer;
         }
-        input[type="submit"]:hover {
-            background-color: #FF8C00;
+        button:hover {
+            background-color: darkorange;
         }
     </style>
 </head>
 <body>
 
-<div class="form-container">
-    <h2>Gerar Senha e Cadastrar no Firestore</h2>
-    <form method="POST" action="">
-        <input type="text" name="nome" placeholder="Nome" required>
-        <input type="email" name="email" placeholder="E-mail" required>
-        <select name="plano" required>
-            <option value="mensal">Mensal</option>
-            <option value="trimestral">Trimestral</option>
-            <option value="anual">Anual</option>
-        </select>
-        <input type="submit" value="Gerar Senha">
-    </form>
-</div>
+    <div class="container">
+        <h2>Gerar Senha e Cadastrar no Firestore</h2>
+        <form method="POST">
+            <input type="text" name="nome" placeholder="Nome" required><br>
+            <input type="email" name="email" placeholder="E-mail" required><br>
+            <select name="plano">
+                <option value="mensal">Mensal</option>
+                <option value="trimestral">Trimestral</option>
+                <option value="anual">Anual</option>
+            </select><br>
+            <button type="submit">Gerar Senha</button>
+        </form>
+        <p><?= $mensagem ?? '' ?></p>
+    </div>
 
 </body>
 </html>
+
 
