@@ -1,58 +1,52 @@
-
-
 <?php
-// Carregar as dependências
-require 'vendor/autoload.php'; // Essa linha carrega todas as dependências do Composer
+// Configuração do Firebase
+$firestoreProject = "mac-projeto-4e552";
+$firestoreUrl = "https://firestore.googleapis.com/v1/projects/$firestoreProject/databases/(default)/documents/users";
+$apiKey = "AIzaSyAO3As6jMMmENtzaK9zlDADbpS9UlNxx8o";
 
-use Kreait\Firebase\Factory;
-use Kreait\Firebase\ServiceAccount;
+// Dados do usuário (enviados pelo formulário)
+$email = $_POST['email'];
+$nome = $_POST['nome'];
+$plano = $_POST['plano'];
 
-// Obter as credenciais do Firebase armazenadas como variável de ambiente no Render
-$firebaseCredentials = getenv('FIREBASE_CREDENTIALS_JSON'); // Variável de ambiente
+// Gerar uma senha aleatória
+$senhaGerada = bin2hex(random_bytes(4));  // Exemplo: "a1b2c3d4"
 
-if ($firebaseCredentials === false) {
-    die('As credenciais do Firebase não estão configuradas corretamente.');
+// Criar hash da senha
+$senhaHash = password_hash($senhaGerada, PASSWORD_BCRYPT);
+
+// Definir validade do plano
+$validade = date('Y-m-d H:i:s', strtotime("+30 days"));
+if ($plano == 'trimestral') $validade = date('Y-m-d H:i:s', strtotime("+90 days"));
+if ($plano == 'anual') $validade = date('Y-m-d H:i:s', strtotime("+365 days"));
+
+// Criar JSON com os dados do usuário
+$data = [
+    "fields" => [
+        "nome" => ["stringValue" => $nome],
+        "email" => ["stringValue" => $email],
+        "senha" => ["stringValue" => $senhaHash],
+        "plano" => ["stringValue" => $plano],
+        "validade" => ["stringValue" => $validade],
+        "status" => ["stringValue" => "ativo"]
+    ]
+];
+
+// Enviar para o Firestore via API REST
+$options = [
+    "http" => [
+        "header"  => "Content-Type: application/json",
+        "method"  => "POST",
+        "content" => json_encode($data)
+    ]
+];
+
+$context  = stream_context_create($options);
+$result = file_get_contents("$firestoreUrl?key=$apiKey", false, $context);
+
+if ($result) {
+    echo "Senha gerada para $email: $senhaGerada";
+} else {
+    echo "Erro ao salvar no Firestore.";
 }
-
-// Converta o conteúdo da variável de ambiente de volta para um formato JSON
-$serviceAccount = ServiceAccount::fromJson($firebaseCredentials);
-
-// Conectando ao Firebase
-$firebase = (new Factory)
-    ->withServiceAccount($serviceAccount)
-    ->createDatabase();
-
-// Função para gerar a senha com hash
-function gerarSenha($length = 12) {
-    return bin2hex(random_bytes($length));
-}
-
-// Dados do formulário (ajuste conforme seu formulário)
-$nome = $_POST['nome'] ?? '';
-$email = $_POST['email'] ?? '';
-$plano = $_POST['plano'] ?? '';
-$validade_plano = $_POST['validade_plano'] ?? '';
-
-// Gerar a senha
-$senha = gerarSenha();
-
-// Hash da senha
-$senha_hash = password_hash($senha, PASSWORD_BCRYPT);
-
-// Salvar no Firestore
-$firestore = $firebase->createFirestore();
-$document = $firestore->collection('users')->document($email);
-$document->set([
-    'nome' => $nome,
-    'email' => $email,
-    'senha' => $senha_hash,
-    'plano' => $plano,
-    'validade_plano' => $validade_plano,
-    'status' => 'ativo'
-]);
-
-// Retornar a senha gerada
-echo "Senha gerada: " . $senha;
 ?>
-
- 
