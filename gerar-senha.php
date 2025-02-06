@@ -1,68 +1,56 @@
 <?php
-// Certifique-se de que não há espaços em branco antes deste PHP
+// Configuração do caminho das credenciais no ambiente Render
+putenv('GOOGLE_APPLICATION_CREDENTIALS=/etc/secrets/google-credentials.json');
 
-// Carregar a chave privada do ambiente do Render
-$firebaseCredentials = json_decode($_ENV['GOOGLE_APPLICATION_CREDENTIALS'], true);
+// Importação manual das classes necessárias
+require_once 'google-cloud-php/Firestore/src/FirestoreClient.php';
+require_once 'google-cloud-php/Core/src/ExponentialBackoff.php';
+require_once 'google-cloud-php/Core/src/ArrayTrait.php';
 
-// Verifica se a credencial está acessível
-if (!$firebaseCredentials) {
-    die("Erro: Credenciais do Firestore não foram encontradas.");
-}
+// Verifica se o formulário foi enviado
+if ($_SERVER["REQUEST_METHOD"] === "POST") {
+    $nome = $_POST["nome"] ?? '';
+    $email = $_POST["email"] ?? '';
+    $plano = $_POST["plano"] ?? 'Mensal';
 
-$projectId = 'mac-projeto-4e552';
-$collection = 'users';
+    if (empty($nome) || empty($email)) {
+        echo "Erro: Nome e e-mail são obrigatórios.";
+        exit;
+    }
 
-// Se o formulário foi enviado
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    // Recebendo os dados do formulário
-    $nome = $_POST['nome'] ?? '';
-    $email = $_POST['email'] ?? '';
-    $plano = $_POST['plano'] ?? 'Mensal';
+    // Geração da senha aleatória
+    $senhaGerada = substr(md5(uniqid(mt_rand(), true)), 0, 8);
+    $senhaHash = password_hash($senhaGerada, PASSWORD_DEFAULT);
 
-    // Gerar senha aleatória (8 caracteres)
-    $senha = substr(md5(uniqid(mt_rand(), true)), 0, 8);
-    $senhaHash = password_hash($senha, PASSWORD_DEFAULT);
+    // Definir a validade do plano
+    $diasPlano = ["Mensal" => 30, "Trimestral" => 90, "Anual" => 365];
+    $validade = new DateTime();
+    $validade->modify("+{$diasPlano[$plano]} days");
+    $validadeFormatada = $validade->format('Y-m-d H:i:s');
 
-    // Definir validade do plano
-    $diasPlano = $plano === 'Mensal' ? 30 : ($plano === 'Trimestral' ? 90 : 365);
-    $dataExpiracao = date('Y-m-d H:i:s', strtotime("+$diasPlano days"));
+    try {
+        // Inicializa o Firestore sem o autoload do Composer
+        $firestore = new Google\Cloud\Firestore\FirestoreClient([
+            'projectId' => 'mac-projeto-4e552',
+        ]);
 
-    // Criar dados para salvar no Firestore
-    $dadosUsuario = [
-        'fields' => [
-            'nome' => ['stringValue' => $nome],
-            'email' => ['stringValue' => $email],
-            'senha' => ['stringValue' => $senhaHash],
-            'plano' => ['stringValue' => $plano],
-            'validade' => ['stringValue' => $dataExpiracao],
-            'status' => ['stringValue' => 'ativo']
-        ]
-    ];
+        // Criar documento no Firestore
+        $docRef = $firestore->collection('users')->document($email);
+        $docRef->set([
+            'nome' => $nome,
+            'email' => $email,
+            'senha' => $senhaHash,
+            'plano' => $plano,
+            'validade' => $validadeFormatada,
+            'status' => 'ativo'
+        ]);
 
-    // URL da API do Firestore
-    $url = "https://firestore.googleapis.com/v1/projects/$projectId/databases/(default)/documents/$collection";
-
-    // Configuração do cURL
-    $ch = curl_init();
-    curl_setopt($ch, CURLOPT_URL, $url);
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($ch, CURLOPT_POST, true);
-    curl_setopt($ch, CURLOPT_HTTPHEADER, [
-        'Content-Type: application/json',
-        'Authorization: Bearer ' . $firebaseCredentials['private_key']
-    ]);
-    curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($dadosUsuario));
-
-    // Executa a requisição
-    $response = curl_exec($ch);
-    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    curl_close($ch);
-
-    // Verifica se deu certo
-    if ($httpCode == 200 || $httpCode == 201) {
-        $mensagem = "Usuário cadastrado com sucesso!<br>Senha gerada: <strong>$senha</strong>";
-    } else {
-        $mensagem = "Erro ao salvar no Firestore.";
+        $mensagem = "Usuário cadastrado com sucesso!\n";
+        $mensagem .= "Senha gerada: $senhaGerada\n";
+        $mensagem .= "Plano: $plano\n";
+        $mensagem .= "Validade: $validadeFormatada";
+    } catch (Exception $e) {
+        $mensagem = "Erro ao salvar no Firestore: " . $e->getMessage();
     }
 }
 ?>
@@ -81,18 +69,18 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             text-align: center;
         }
         .container {
-            background-color: #003300;
+            background-color: #004d00;
             border: 2px solid #00ff00;
-            padding: 20px;
-            width: 300px;
+            width: 50%;
             margin: auto;
-            margin-top: 50px;
+            padding: 20px;
             border-radius: 10px;
+            margin-top: 50px;
         }
         input, select {
-            width: 100%;
+            width: 90%;
             padding: 10px;
-            margin-top: 10px;
+            margin: 10px 0;
             background-color: black;
             color: white;
             border: 1px solid #00ff00;
@@ -101,42 +89,38 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         button {
             background-color: orange;
             color: black;
-            padding: 10px;
-            margin-top: 10px;
+            font-weight: bold;
+            padding: 10px 20px;
             border: none;
-            cursor: pointer;
-            width: 100%;
-            font-size: 16px;
             border-radius: 5px;
+            cursor: pointer;
         }
         button:hover {
-            background-color: darkorange;
-        }
-        .mensagem {
-            margin-top: 10px;
-            color: #00ff00;
+            background-color: #ff9900;
         }
     </style>
 </head>
 <body>
-
-<div class="container">
-    <h2>Gerar Senha e Cadastrar</h2>
-    <form method="POST">
-        <input type="text" name="nome" placeholder="Nome" required>
-        <input type="email" name="email" placeholder="E-mail" required>
-        <select name="plano">
-            <option value="Mensal">Mensal</option>
-            <option value="Trimestral">Trimestral</option>
-            <option value="Anual">Anual</option>
-        </select>
-        <button type="submit">Gerar Senha</button>
-    </form>
-    <?php if (!empty($mensagem)): ?>
-        <div class="mensagem"><?= $mensagem ?></div>
-    <?php endif; ?>
-</div>
-
+    <div class="container">
+        <h2>Gerar Senha e Cadastrar no Firestore</h2>
+        <form method="POST">
+            <label>Nome:</label>
+            <input type="text" name="nome" required>
+            
+            <label>E-mail:</label>
+            <input type="email" name="email" required>
+            
+            <label>Plano:</label>
+            <select name="plano">
+                <option value="Mensal">Mensal</option>
+                <option value="Trimestral">Trimestral</option>
+                <option value="Anual">Anual</option>
+            </select>
+            
+            <button type="submit">Gerar Senha</button>
+        </form>
+        <?php if (isset($mensagem)) echo "<p>$mensagem</p>"; ?>
+    </div>
 </body>
 </html>
 
