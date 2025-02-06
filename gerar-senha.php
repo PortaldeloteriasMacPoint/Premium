@@ -1,14 +1,10 @@
 <?php
-// Incluir arquivos necessários manualmente
-require_once 'vendor/google/cloud-core/src/ExponentialBackoff.php';
-require_once 'vendor/google/cloud-firestore/src/FirestoreClient.php';
-require_once 'vendor/google/auth/src/CredentialsLoader.php';
-require_once 'vendor/google/auth/src/ServiceAccountCredentials.php';
+// Caminho correto para as bibliotecas do Firestore no Composer
+require_once 'vendor/google/cloud-firestore/FirestoreClient.php';
 
 use Google\Cloud\Firestore\FirestoreClient;
-use Google\Auth\CredentialsLoader;
 
-// Configurar variável de ambiente para a chave secreta do Firestore
+// Configurar variável de ambiente para o Firestore
 putenv('GOOGLE_APPLICATION_CREDENTIALS=/etc/secrets/google-credentials.json');
 
 $mensagem = "";
@@ -25,14 +21,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $email = $_POST['email'] ?? '';
         $plano = $_POST['plano'] ?? '';
 
-        // Validar campos
         if (empty($nome) || empty($email) || empty($plano)) {
             $mensagem = "Preencha todos os campos!";
         } else {
             // Gerar senha aleatória
-            $senha = bin2hex(random_bytes(4)); // Exemplo: 8 caracteres hexadecimais
+            $senha = bin2hex(random_bytes(4));
             $senhaHash = password_hash($senha, PASSWORD_BCRYPT);
-            $validade = time() + (30 * 24 * 60 * 60); // 30 dias
+            $validade = time() + (30 * 24 * 60 * 60);
             $status = "ativo";
 
             // Salvar no Firestore
