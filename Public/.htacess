@@ -1,4 +1,9 @@
 RewriteEngine On
+
+# Permitir acesso direto ao gerar_senha.php
+RewriteRule ^gerar_senha.php$ gerar_senha.php [L]
+
+# Redirecionar todas as outras requisições para index.php
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
 RewriteRule ^ index.php [L]
@@ -18,6 +23,7 @@ RewriteRule ^ index.php [L]
     RewriteCond %{REQUEST_METHOD} OPTIONS
     RewriteRule ^(.*)$ $1 [L]
 </IfModule>
+
 # Impede o acesso direto aos arquivos de configuração e credenciais do Firebase
 <Files "config.php">
     Order Allow,Deny
@@ -26,4 +32,5 @@ RewriteRule ^ index.php [L]
 
 # Garantir que o PHP use UTF-8 por padrão
 AddDefaultCharset UTF-8
+
 
