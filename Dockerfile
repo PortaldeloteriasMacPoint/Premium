@@ -9,8 +9,6 @@ RUN echo "ServerName premium-portaldeloteriasmacpoint.onrender.com" >> /etc/apac
 # Alterar a porta para 8080
 RUN sed -i 's/80/8080/g' /etc/apache2/sites-available/000-default.conf /etc/apache2/ports.conf
 
-# Instalar o Composer diretamente
-RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
 # Definir diretório de trabalho
 WORKDIR /var/www/html
@@ -18,8 +16,6 @@ WORKDIR /var/www/html
 # Copiar os arquivos do projeto
 COPY . /var/www/html/
 
-# Instalar dependências do Composer
-RUN composer install --no-dev --optimize-autoloader
 
 # Corrigir permissões dos arquivos
 RUN chown -R www-data:www-data /var/www/html
