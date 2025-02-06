@@ -16,3 +16,11 @@
   }
 }
 
+
+"scripts": {
+    "post-install-cmd": [
+        "composer dump-autoload"
+    ]
+}
+
+
