@@ -1,31 +1,33 @@
-FROM php:7.4-apache
+# Use uma imagem base do PHP
+FROM php:8.1-cli
 
-# Habilitar mod_rewrite
-RUN a2enmod rewrite
+# Instalar dependências necessárias para o PHP
+RUN apt-get update && apt-get install -y \
+    libpng-dev \
+    libjpeg-dev \
+    libfreetype6-dev \
+    zip \
+    git \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install gd
 
-# Definir o nome do servidor
-RUN echo "ServerName premium-portaldeloteriasmacpoint.onrender.com" >> /etc/apache2/apache2.conf
+# Instalar o Composer globalmente
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
-# Alterar a porta para 8080
-RUN sed -i 's/80/8080/g' /etc/apache2/sites-available/000-default.conf /etc/apache2/ports.conf
-
-# Instalar extensões necessárias
-RUN docker-php-ext-install mysqli
-
-# Instalar o Composer
-COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
-
-# Definir diretório de trabalho
+# Definir o diretório de trabalho dentro do contêiner
 WORKDIR /var/www/html
 
-# Copiar os arquivos do projeto
-COPY . /var/www/html/
+# Copiar o arquivo composer.json para o diretório de trabalho
+COPY composer.json .
 
-# Instalar dependências do Composer
-RUN composer install --no-dev --optimize-autoloader
+# Instalar as dependências do Composer
+RUN composer install --no-interaction
 
-# Expor a porta 8080
-EXPOSE 8080
+# Copiar todos os arquivos do projeto para o diretório de trabalho
+COPY . .
 
-# Iniciar o Apache
-CMD ["apache2-foreground"]
+# Expor a porta 80 (se necessário)
+EXPOSE 80
+
+# Comando para iniciar o servidor PHP
+CMD ["php", "-S", "0.0.0.0:80", "-t", "public"]
