@@ -9,9 +9,6 @@ RUN echo "ServerName premium-portaldeloteriasmacpoint.onrender.com" >> /etc/apac
 # Alterar a porta para 8080
 RUN sed -i 's/80/8080/g' /etc/apache2/sites-available/000-default.conf /etc/apache2/ports.conf
 
-# Instalar extensões necessárias
-RUN docker-php-ext-install mysqli
-
 # Instalar o Composer diretamente
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
