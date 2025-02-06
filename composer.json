@@ -1,3 +1,5 @@
+
+
 {
   "name": "meu/portal-loterias",
   "description": "Projeto Portal de Loterias",
@@ -11,7 +13,8 @@
     "phpmailer/phpmailer": "^6.5",
     "monolog/monolog": "^2.0",
     "vlucas/phpdotenv": "^5.5",
-    "kreait/firebase-php": "^6.0"
+    "kreait/firebase-php": "^6.0",
+    "google/cloud-firestore": "^1.27"
   },
   "scripts": {
     "post-install-cmd": [
@@ -19,3 +22,4 @@
     ]
   }
 }
+
