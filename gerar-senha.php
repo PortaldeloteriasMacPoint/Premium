@@ -2,6 +2,8 @@
 
 <?php
 // Impedir cache no navegador
+ob_start(); // Inicia o buffer de saída para evitar problemas com envio de cabeçalhos depois
+
 header("Cache-Control: no-cache, no-store, must-revalidate");
 header("Pragma: no-cache");
 header("Expires: 0");
@@ -73,8 +75,86 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gerar Senha</title>
+
+    <!-- Estilo Neon -->
+    <style>
+        body {
+            background-color: #000;
+            font-family: 'Arial', sans-serif;
+            color: #fff;
+            margin: 0;
+            padding: 0;
+        }
+
+        h2 {
+            color: #0f0;
+            text-align: center;
+            font-size: 36px;
+            margin-top: 50px;
+            text-shadow: 0 0 10px #0f0, 0 0 20px #0f0, 0 0 30px #0f0;
+        }
+
+        form {
+            width: 300px;
+            margin: 50px auto;
+            padding: 20px;
+            border: 2px solid #0f0;
+            background-color: #222;
+            border-radius: 8px;
+            box-shadow: 0 0 15px rgba(0, 255, 0, 0.7);
+        }
+
+        label {
+            display: block;
+            margin: 10px 0;
+            color: #fff;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            background-color: #111;
+            color: #fff;
+            border: 2px solid #0f0;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+
+        input[type="submit"] {
+            background-color: #ff7f00;
+            color: #000;
+            cursor: pointer;
+            border: none;
+            font-size: 18px;
+            transition: background-color 0.3s;
+        }
+
+        input[type="submit"]:hover {
+            background-color: #ff5500;
+        }
+
+        .result {
+            text-align: center;
+            color: #fff;
+            font-size: 18px;
+        }
+
+        .result p {
+            margin: 10px 0;
+        }
+
+        .result .success {
+            color: #0f0;
+        }
+
+        .result .error {
+            color: #f00;
+        }
+    </style>
 </head>
 <body>
+
     <h2>Gerar Senha e Cadastrar no Firebase</h2>
 
     <form method="POST" action="">
@@ -91,19 +171,29 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             <option value="anual">Anual</option>
         </select><br><br>
 
-        <button type="submit">Gerar Senha</button>
+        <input type="submit" value="Gerar Senha">
     </form>
 
     <?php if ($mensagem): ?>
-        <h3><?php echo $mensagem; ?></h3>
+        <div class="result <?php echo ($result) ? 'success' : 'error'; ?>">
+            <h3><?php echo $mensagem; ?></h3>
+        </div>
     <?php endif; ?>
 
     <?php if ($senhaGerada): ?>
-        <h4>Detalhes gerados:</h4>
-        <p><strong>Senha gerada:</strong> <?php echo $senhaGerada; ?></p>
-        <p><strong>Plano:</strong> <?php echo ucfirst($plano); ?></p>
-        <p><strong>Validade do plano:</strong> <?php echo $validade; ?></p>
+        <div class="result success">
+            <h4>Detalhes gerados:</h4>
+            <p><strong>Senha gerada:</strong> <?php echo $senhaGerada; ?></p>
+            <p><strong>Plano:</strong> <?php echo ucfirst($plano); ?></p>
+            <p><strong>Validade do plano:</strong> <?php echo $validade; ?></p>
+        </div>
     <?php endif; ?>
+
 </body>
 </html>
+
+<?php
+// Finalize the output buffering
+ob_end_flush();
+?>
 
