@@ -1,9 +1,8 @@
-
-
 <?php
 // Impedir cache no navegador
 ob_start(); // Inicia o buffer de saída para evitar problemas com envio de cabeçalhos depois
 
+// Colocando os headers antes de qualquer saída
 header("Cache-Control: no-cache, no-store, must-revalidate");
 header("Pragma: no-cache");
 header("Expires: 0");
