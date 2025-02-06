@@ -1,11 +1,8 @@
 <?php
-// Caminho correto para as bibliotecas do Firestore no Composer
-require_once 'vendor/google/cloud-firestore/FirestoreClient.php';
-
-use Google\Cloud\Firestore\FirestoreClient;
-
 // Configurar variável de ambiente para o Firestore
 putenv('GOOGLE_APPLICATION_CREDENTIALS=/etc/secrets/google-credentials.json');
+
+use Google\Cloud\Firestore\FirestoreClient;
 
 $mensagem = "";
 
@@ -125,5 +122,4 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
 </body>
 </html>
-
 
