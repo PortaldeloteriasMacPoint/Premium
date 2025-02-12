@@ -33,4 +33,7 @@ RewriteRule ^ index.php [L]
 # Garantir que o PHP use UTF-8 por padrão
 AddDefaultCharset UTF-8
 
-
+<Files "links.json">
+  Order Allow,Deny
+  Deny from all
+</Files>
