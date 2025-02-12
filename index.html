@@ -1,40 +1,59 @@
-
-
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Início - Sistema de Gerenciamento</title>
+    <title>Gerar Link Único</title>
     <style>
         body {
+            background-color: #004d00;
+            color: white;
+            font-family: Arial, sans-serif;
+            text-align: center;
             display: flex;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
             height: 100vh;
-            background-color: #333;
-            color: #fff;
-            font-family: Arial, sans-serif;
+        }
+        #linkGerado {
+            margin-top: 20px;
+            padding: 10px;
+            background: #222;
+            border-radius: 5px;
+            display: none;
         }
         button {
-            padding: 15px 30px;
-            font-size: 16px;
-            background-color: #007BFF;
-            color: #fff;
+            background-color: orange;
+            color: black;
+            padding: 10px 20px;
+            font-size: 18px;
             border: none;
-            border-radius: 5px;
             cursor: pointer;
+            border-radius: 5px;
         }
         button:hover {
-            background-color: #0056b3;
+            background-color: darkorange;
         }
     </style>
 </head>
 <body>
-    <div>
-        <h1>Bem-vindo ao Sistema de Gerenciamento</h1>
-        <button onclick="window.location.href='gerenciamento.php'">Ir para Gerenciamento</button>
-    </div>
+    <h1>Gerar Link de Acesso</h1>
+    <button onclick="gerarLink()">Gerar Link</button>
+    <div id="linkGerado"></div>
+
+    <script>
+        function gerarLink() {
+            fetch('gerar_link.php')
+                .then(response => response.text())
+                .then(data => {
+                    document.getElementById('linkGerado').innerHTML = `<p><strong>Link Gerado:</strong> <a href="${data}" target="_blank">${data}</a></p>`;
+                    document.getElementById('linkGerado').style.display = "block";
+                })
+                .catch(error => console.error('Erro ao gerar link:', error));
+        }
+    </script>
 </body>
 </html>
+
 
