@@ -1,7 +1,5 @@
-
-
 <?php
-include 'config.php';
+include(__DIR__ . '/config.php');
 
 // Gerar um token único
 $token = bin2hex(random_bytes(16));  // Gera um token de 32 caracteres hexadecimais
