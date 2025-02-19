@@ -1,31 +1,30 @@
 <?php
 include(__DIR__ . '/config.php');
 
-// Gerar um token único
-$token = bin2hex(random_bytes(16));  // Gera um token de 32 caracteres hexadecimais
+// Gera um token exclusivo
+$token = bin2hex(random_bytes(16)); // Gera um token aleatório
+$validade = 30; // Duração em dias
 
-// Exemplo de usuário (aqui você pode pegar do banco ou de outro lugar)
-$usuario = [
-    'id' => 1,
-    'nome' => 'Usuário A',
-    'authToken' => $token,
-    'expiracao' => date('Y-m-d\TH:i:s', strtotime('+30 days')),  // Token expira em 30 dias
-    'status' => 'ativo'  // O status pode ser 'ativo' ou 'bloqueado'
+// URL da página premium
+$url_pagina_premium = "https://portaldeloteriasmacpoint.github.io/Mac-Point--Premium/pagepremium.html";
+
+// Carrega links existentes
+$links = carregarLinks();
+
+// Adiciona o novo link com validade
+$links[] = [
+    'token' => $token,
+    'data_expiracao' => date('Y-m-d H:i:s', strtotime("+$validade days")),
 ];
 
-// Carrega os usuários existentes
-$usuarios = carregarUsuarios();
+// Salva os links
+salvarLinks($links);
 
-// Adiciona o novo usuário com o token
-$usuarios[] = $usuario;
-
-// Salva os dados novamente no arquivo JSON
-salvarUsuarios($usuarios);
-
-// Gera o link
-$link = "https://portaldeloteriasmacpoint.github.io/Mac-Point--Premium/pagepremium.html /?token=$token";
+// Gera o link completo para envio
+$link_exclusivo = "http://seu-servidor/validar-link.php?token=$token";
 
 // Exibe o link gerado
-echo "Link gerado com sucesso: <a href='$link' target='_blank'>$link</a>";
+echo "Link gerado com sucesso: <a href='$link_exclusivo'>$link_exclusivo</a>";
+echo "<br>Acesse a página premium: <a href='$url_pagina_premium'>$url_pagina_premium</a>";
 ?>
 
