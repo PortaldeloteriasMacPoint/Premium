@@ -1,6 +1,0 @@
-:
-
-usuario1@email.com|senhaGerada123
-usuario2@email.com|senhaGerada456
-usuario3@email.com|senhaGerada789
-
