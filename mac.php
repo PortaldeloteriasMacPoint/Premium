@@ -1,7 +1,7 @@
 <?php
     // Exemplo de variável PHP que pode ser dinâmica
-    $title = "Mark Point";
-    $description = "Bem-vindo à plataforma Mark Point. Aqui você encontra tudo sobre loterias!";
+    $title = " ✨🗣️ Mac Point";
+    $description = "Bem-vindo à plataforma "Portal de Loterias- Mac Point" . Aqui você encontra tudo sobre loterias!";
     $carousel_images = [
         "https://via.placeholder.com/600x150/FF5733",
         "https://via.placeholder.com/600x150/33FF57",
@@ -223,7 +223,7 @@
 
     <!-- Menu Lateral -->
     <div class="sidebar" id="sidebar">
-        <h2>Menu</h2>
+        <h2> Menu</h2>
         <a href="inicio.php" class="menu-item">Início</a>
         <a href="modalidades.php" class="menu-item">Modalidades</a>
         <a href="#" class="menu-item" onclick="toggleSubmenu()">Análise Estatística ▼</a>
@@ -263,7 +263,7 @@
 
     <!-- Rodapé -->
     <div class="footer">
-        © 2025 Mark Point - Todos os direitos reservados.
+        © Copyright  2025 - O Portal de Loterias Mac Point é uma plataforma independente,não possui vínculo a Caixa Econômica Federal / Todos os direitos reservados.
     </div>
 
     <script>
