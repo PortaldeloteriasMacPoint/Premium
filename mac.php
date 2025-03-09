@@ -52,7 +52,7 @@
         /* Título na borda superior */
         .top-bar h1 {
             color: white;
-            font-size: 18px;
+            font-size: 12px;
             font-weight: bold;
         }
 
