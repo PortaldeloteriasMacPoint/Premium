@@ -1,6 +1,6 @@
 <?php
     // Exemplo de variável PHP que pode ser dinâmica
-    $title = " ✨🗣️ Mac Point";
+    $title = "✨ Portal de Loterias - Mac Point ✨";
     $description = "Bem-vindo à plataforma Portal de Loterias- Mac Point . Aqui você encontra tudo sobre loterias!";
     $carousel_images = [
         "https://via.placeholder.com/600x150/FF5733",
