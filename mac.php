@@ -222,7 +222,7 @@
         if (user) {
             document.getElementById("protectedContent").style.display = "block";
         } else {
-            window.location.href = "index.html";
+            window.location.href = "index.php";
         }
     });
 
