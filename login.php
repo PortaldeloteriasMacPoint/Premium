@@ -1,6 +1,8 @@
 <?php
-session_start(); // Deve ser a primeira linha do arquivo, antes de qualquer saída HTML
-?>
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+?
 <!DOCTYPE html><html lang="pt">
 <head>
     <meta charset="UTF-8">
