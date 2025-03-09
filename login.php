@@ -1,3 +1,6 @@
+<?php
+session_start(); // Deve ser a primeira linha do arquivo, antes de qualquer saída HTML
+?>
 <!DOCTYPE html><html lang="pt">
 <head>
     <meta charset="UTF-8">
