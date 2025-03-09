@@ -1,9 +1,63 @@
 <?php
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
+session_start(); // Iniciar a sessão para verificar o status do login
+
+// Definir a URL de redirecionamento em caso de login bem-sucedido
+$loginRedirect = "mac.php";
+
+// Verificar se o usuário já está logado
+if (isset($_SESSION['acesso_autorizado']) && $_SESSION['acesso_autorizado'] == "true") {
+    header("Location: $loginRedirect");
+    exit;
 }
-?
-<!DOCTYPE html><html lang="pt">
+
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    $email = trim($_POST["email"]);
+    $senha = trim($_POST["senha"]);
+    $mensagem = '';
+
+    if ($email === "" || $senha === "") {
+        $mensagem = "Preencha todos os campos!";
+        $mensagemClass = "erro";
+    } else {
+        // URL da API Firebase para autenticação
+        $firebaseAuthUrl = "https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=AIzaSyAO3As6jMMmENtzaK9zlDADbpS9UlNxx8o";
+
+        // Dados enviados para a API do Firebase
+        $postData = json_encode([
+            "email" => $email,
+            "password" => $senha,
+            "returnSecureToken" => true
+        ]);
+
+        // Inicializar cURL
+        $ch = curl_init($firebaseAuthUrl);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $postData);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
+
+        // Executar a requisição cURL
+        $response = curl_exec($ch);
+        curl_close($ch);
+
+        // Processar a resposta da API
+        $decodedResponse = json_decode($response, true);
+
+        if (isset($decodedResponse["idToken"])) {
+            // Login bem-sucedido
+            $_SESSION["acesso_autorizado"] = "true";
+            header("Location: $loginRedirect");
+            exit;
+        } else {
+            $mensagem = "Erro no login! Verifique os dados.";
+            $mensagemClass = "erro";
+        }
+    }
+}
+?>
+
+<!DOCTYPE html>
+<html lang="pt">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -16,14 +70,14 @@ if (session_status() === PHP_SESSION_NONE) {
             font-family: Arial, sans-serif;
         }
         body {
-            background-color: #000; /* Plano de fundo preto */
+            background-color: #000;
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
         }
         .container {
-            background: #fff; /* Formulário branco */
+            background: #fff;
             padding: 30px;
             border-radius: 8px;
             box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
@@ -62,7 +116,6 @@ if (session_status() === PHP_SESSION_NONE) {
             margin-top: 15px;
             padding: 10px;
             border-radius: 4px;
-            display: none;
             font-weight: bold;
         }
         .sucesso {
@@ -83,56 +136,24 @@ if (session_status() === PHP_SESSION_NONE) {
         }
     </style>
 </head>
-<body><div class="container">
-    <h2>Login</h2>
-    <form method="POST" action="">
-        <input type="email" name="email" placeholder="E-mail" required />
-        <input type="password" name="senha" placeholder="Senha" required />
-        <button type="submit" name="loginBtn">Entrar</button>
-    </form>
-    <?php
-    session_start();
+<body>
 
-    if ($_SERVER["REQUEST_METHOD"] == "POST") {
-        $email = trim($_POST["email"]);
-        $senha = trim($_POST["senha"]);
+    <div class="container">
+        <h2>Login</h2>
+        <form method="POST">
+            <input type="email" name="email" placeholder="E-mail" required />
+            <input type="password" name="senha" placeholder="Senha" required />
+            <button type="submit">Entrar</button>
+        </form>
 
-        if ($email === "" || $senha === "") {
-            echo '<p class="mensagem erro">Preencha todos os campos!</p>';
-        } else {
-            // 🔹 Conectar ao Firebase Authentication via API REST
-            $firebaseAuthUrl = "https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=AIzaSyAO3As6jMMmENtzaK9zlDADbpS9UlNxx8o";
+        <?php if (!empty($mensagem)): ?>
+            <p class="mensagem <?= $mensagemClass; ?>"><?= $mensagem; ?></p>
+        <?php endif; ?>
 
-            $postData = json_encode([
-                "email" => $email,
-                "password" => $senha,
-                "returnSecureToken" => true
-            ]);
-
-            $ch = curl_init($firebaseAuthUrl);
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-            curl_setopt($ch, CURLOPT_POST, true);
-            curl_setopt($ch, CURLOPT_POSTFIELDS, $postData);
-            curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
-
-            $response = curl_exec($ch);
-            curl_close($ch);
-
-            $decodedResponse = json_decode($response, true);
-
-            if (isset($decodedResponse["idToken"])) {
-                $_SESSION["acesso_autorizado"] = true;
-
-                echo '<p class="mensagem sucesso">Login realizado com sucesso!</p>';
-                echo '<script>setTimeout(() => { window.location.href = "index2.php"; }, 2000);</script>';
-            } else {
-                echo '<p class="mensagem erro">Erro no login! Verifique os dados.</p>';
-            }
-        }
-    }
-    ?>
-    <p><a href="loginacesso.php" class="cadastro-link">Não tem cadastro? Cadastre-se.</a></p> <!-- Link para o cadastro -->
-</div>
+        <p><a href="loginacesso.php" class="cadastro-link">Não tem cadastro? Cadastre-se.</a></p>
+    </div>
 
 </body>
 </html>
+
+
