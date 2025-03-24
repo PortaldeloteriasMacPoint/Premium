@@ -1,52 +1,43 @@
 <?php
-// Caminhos dos arquivos
-$resultadosFile = 'resultados.json';
-$backupDir = 'backups/'; // Pasta onde os backups serão salvos
-
-// Criar a pasta de backup se não existir
-if (!is_dir($backupDir)) {
-    mkdir($backupDir, 0777, true);
-}
-
-// Verifica se o arquivo resultados.json existe
-if (!file_exists($resultadosFile)) {
-    file_put_contents($resultadosFile, json_encode([])); // Cria o arquivo vazio caso não exista
-}
-
-// Função para criar backup automaticamente
-function criarBackup($resultadosFile, $backupDir) {
-    $backupFile = $backupDir . "backup_" . date("Y-m-d_H-i-s") . ".json";
-    if (copy($resultadosFile, $backupFile)) {
-        return true;
+// Função para salvar dados no arquivo JSON
+function salvarResultado($modalidade, $numero_sorteio, $resultado) {
+    $arquivo = 'resultados.json';
+    
+    // Verifica se o arquivo existe e carrega o conteúdo
+    if (file_exists($arquivo)) {
+        $dados = file_get_contents($arquivo);
+        $resultados = json_decode($dados, true);
     } else {
-        return false;
+        // Se o arquivo não existe, cria um array vazio
+        $resultados = [];
+    }
+
+    // Novo resultado a ser adicionado
+    $novoResultado = [
+        'modalidade' => $modalidade,
+        'numero_sorteio' => $numero_sorteio,
+        'resultado' => $resultado,
+    ];
+
+    // Adiciona o novo resultado
+    $resultados[] = $novoResultado;
+
+    // Salva os dados de volta no arquivo JSON
+    if (file_put_contents($arquivo, json_encode($resultados, JSON_PRETTY_PRINT))) {
+        return true;  // Sucesso
+    } else {
+        return false; // Falha ao salvar
     }
 }
 
-// Processa o formulário quando os dados forem enviados
+// Verifica se o formulário foi enviado
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    // Captura os dados do formulário
     $modalidade = $_POST['modalidade'];
-    $numeroSorteio = $_POST['numeroSorteio'];
+    $numero_sorteio = $_POST['numero_sorteio'];
     $resultado = $_POST['resultado'];
 
-    // Carrega o arquivo JSON atual
-    $resultados = json_decode(file_get_contents($resultadosFile), true);
-
-    // Adiciona o novo resultado ao array
-    $novoResultado = [
-        'modalidade' => $modalidade,
-        'numeroSorteio' => $numeroSorteio,
-        'resultado' => $resultado
-    ];
-    $resultados[] = $novoResultado;
-
-    // Salva os dados no arquivo JSON
-    file_put_contents($resultadosFile, json_encode($resultados, JSON_PRETTY_PRINT));
-
-    // Cria backup
-    criarBackup($resultadosFile, $backupDir);
-    echo "<p style='color: green;'>Resultado salvo com sucesso!</p>";
+    // Tenta salvar o novo resultado
+    $sucesso = salvarResultado($modalidade, $numero_sorteio, $resultado);
 }
 ?>
 
@@ -59,65 +50,97 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     <style>
         body {
             font-family: Arial, sans-serif;
-            text-align: center;
-            background-color: #fff;
-            color: #000;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f4f4f4;
         }
         .container {
-            max-width: 600px;
-            margin: 0 auto;
+            background-color: #fff;
             padding: 20px;
-            border: 2px solid #000;
+            border: 1px solid #ccc;
             border-radius: 8px;
-            background-color: #f9f9f9;
-        }
-        input, select {
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
             width: 100%;
-            padding: 8px;
+            max-width: 600px;
+        }
+        h2 {
+            text-align: center;
+            color: #2f6b58;
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+        }
+        input, select, button {
             margin: 10px 0;
+            padding: 10px;
             border: 1px solid #ccc;
             border-radius: 4px;
+            font-size: 16px;
         }
         button {
-            background-color: #ff7f00; /* Laranja escuro */
+            background-color: #ff6600;
             color: #fff;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 5px;
             cursor: pointer;
         }
         button:hover {
-            background-color: #e67e00;
+            background-color: #e65c00;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+            padding: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #c3e6cb;
+            border-radius: 5px;
+        }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            padding: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #f5c6cb;
+            border-radius: 5px;
         }
     </style>
 </head>
 <body>
+    <div class="container">
+        <h2>Painel de Resultados</h2>
 
-<div class="container">
-    <h1>Adicionar Resultado</h1>
-    <form method="POST">
-        <label for="modalidade">Selecione a Modalidade:</label>
-        <select name="modalidade" id="modalidade" required>
-            <option value="Mega Sena">Mega Sena</option>
-            <option value="Quina">Quina</option>
-            <option value="Lotofácil">Lotofácil</option>
-            <option value="Lotomania">Lotomania</option>
-            <option value="Dupla Sena">Dupla Sena</option>
-            <option value="Timemania">Timemania</option>
-            <option value="Chispalotto">Chispalotto</option>
-            <option value="Milionária">Milionária</option>
-        </select>
+        <?php if (isset($sucesso) && $sucesso): ?>
+            <div class="success">Resultado salvo com sucesso!</div>
+        <?php elseif (isset($sucesso) && !$sucesso): ?>
+            <div class="error">Erro ao salvar o resultado!</div>
+        <?php endif; ?>
 
-        <label for="numeroSorteio">Número do Sorteio:</label>
-        <input type="number" name="numeroSorteio" id="numeroSorteio" required>
+        <!-- Formulário para adicionar resultado -->
+        <form method="POST">
+            <label for="modalidade">Escolha a Modalidade:</label>
+            <select name="modalidade" required>
+                <option value="Mega-Sena">Mega-Sena</option>
+                <option value="Quina">Quina</option>
+                <option value="Lotofácil">Lotofácil</option>
+                <option value="Lotomania">Lotomania</option>
+                <option value="Dupla Sena">Dupla Sena</option>
+                <option value="Timemania">Timemania</option>
+                <option value="Chispalotto">Chispalotto</option>
+                <option value="Milionária">Milionária</option>
+            </select>
 
-        <label for="resultado">Resultado (Números Sorteados):</label>
-        <input type="text" name="resultado" id="resultado" placeholder="Ex: 05, 12, 20, 30, 43, 56" required>
+            <label for="numero_sorteio">Número do Sorteio:</label>
+            <input type="number" name="numero_sorteio" required>
 
-        <button type="submit">Salvar Resultado</button>
-    </form>
-</div>
+            <label for="resultado">Resultado:</label>
+            <input type="text" name="resultado" required placeholder="Ex: 01, 02, 03, 04, 05, 06">
 
+            <button type="submit">Salvar Resultado</button>
+        </form>
+    </div>
 </body>
 </html>
 
