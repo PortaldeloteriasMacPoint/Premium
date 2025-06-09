@@ -1,117 +1,135 @@
-
 <?php
-// Inicia o PHP e define o caminho do "banco de notificações"
-$arquivo = 'banco_notificacoes.json';
-if (!file_exists($arquivo)) {
-    file_put_contents($arquivo, json_encode([]));
+define('FIREBASE_PROJECT_ID', 'mac-projeto-4e552');
+define('FIREBASE_API_KEY', 'AIzaSyAO3As6jMMmENtzaK9zlDADbpS9UlNxx8o');
+define('FIREBASE_COLLECTION', 'notificacoes');
+
+$usuarios = [
+  'usuario1@email.com',
+  'usuario2@email.com',
+  'usuario3@email.com'
+];
+
+function enviarNotificacao($email, $mensagem) {
+    $data = [
+        'email' => ['stringValue' => $email],
+        'mensagem' => ['stringValue' => $mensagem],
+        'timestamp' => ['timestampValue' => date('c')],
+        'lida' => ['booleanValue' => false]
+    ];
+
+    $url = "https://firestore.googleapis.com/v1/projects/" . FIREBASE_PROJECT_ID . "/databases/(default)/documents/" . FIREBASE_COLLECTION . "?key=" . FIREBASE_API_KEY;
+
+    $postData = json_encode(['fields' => $data]);
+
+    $ch = curl_init($url);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_POST, 1);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, $postData);
+    $response = curl_exec($ch);
+    curl_close($ch);
+    return json_decode($response, true);
 }
 
-$dados = json_decode(file_get_contents($arquivo), true);
+$status = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $mensagem = trim($_POST['mensagem']);
-    $destino = $_POST['destino'];
-    $timestamp = time();
-    $novaNotificacao = [
-        'mensagem' => $mensagem,
-        'lida' => false,
-        'timestamp' => $timestamp
-    ];
-
-    if ($destino === 'todos') {
-        foreach ($dados as $usuario => &$notificacoes) {
-            $notificacoes['globais'][] = $novaNotificacao;
-        }
-    } else {
-        if (!isset($dados[$destino])) {
-            $dados[$destino] = ['globais' => [], 'individuais' => []];
-        }
-        $dados[$destino]['individuais'][] = $novaNotificacao;
+    foreach ($usuarios as $email) {
+        enviarNotificacao($email, $mensagem);
     }
-
-    file_put_contents($arquivo, json_encode($dados, JSON_PRETTY_PRINT));
-    $mensagemSucesso = "Notificação enviada com sucesso!";
+    $status = "✅ Notificação enviada para todos os usuários!";
 }
 ?>
 
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <title>Enviar Notificação</title>
+  <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Enviar Notificação</title>
   <style>
     body {
-      background-color: black;
-      color: white;
-      font-family: sans-serif;
+      background-color: #000;
+      color: #fff;
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
       display: flex;
       justify-content: center;
-      align-items: center;
-      height: 100vh;
-      margin: 0;
+      align-items: flex-start;
+      min-height: 100vh;
     }
-
-    .form-container {
-      max-width: 400px;
+    .container {
       width: 90%;
+      max-width: 600px;
+      background: #111;
+      margin-top: 40px;
       padding: 20px;
-      background-color: #111;
-      border-radius: 10px;
-      text-align: center;
+      border-radius: 12px;
+      box-shadow: 0 0 12px #000;
     }
-
-    textarea, select, button {
-      width: 100%;
-      margin: 10px 0;
-      padding: 12px;
-      font-size: 16px;
-      border: 1px solid #444;
-      border-radius: 6px;
-    }
-
-    button {
-      background-color: orange;
-      color: white;
-      font-weight: bold;
-      border: 2px solid black;
-      cursor: pointer;
-      text-shadow: 1px 1px 1px black;
-    }
-
-    .success {
-      margin-top: 10px;
-      color: #0f0;
-      font-weight: bold;
-    }
-
     h2 {
-      margin-bottom: 10px;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    label {
+      display: block;
+      margin-top: 15px;
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+    textarea {
+      width: 100%;
+      padding: 12px;
+      border-radius: 6px;
+      border: 1px solid #555;
+      background: #222;
+      color: #fff;
+      box-sizing: border-box;
+      font-size: 1rem;
+      resize: vertical;
+      min-height: 100px;
+    }
+    button {
+      width: 100%;
+      padding: 14px;
+      margin-top: 20px;
+      background: orange;
+      color: white;
+      border: 2px solid black;
+      border-radius: 8px;
+      font-size: 1.1rem;
+      font-weight: bold;
+      text-shadow: 1px 1px 0 black;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+    button:hover {
+      background: #e69500;
+    }
+    .status {
+      text-align: center;
+      margin-top: 20px;
+      font-weight: bold;
+      color: lime;
     }
   </style>
 </head>
 <body>
+  <div class="container">
+    <h2>Enviar Notificação para Todos</h2>
+    <form method="post">
+      <label for="mensagem">Mensagem:</label>
+      <textarea id="mensagem" name="mensagem" required placeholder="Digite a mensagem para todos os usuários..."></textarea>
 
-  <div class="form-container">
-    <h2>Enviar Notificação</h2>
-    <form method="POST">
-      <textarea name="mensagem" placeholder="Digite a notificação..." required></textarea>
-      <select name="destino" required>
-        <option value="">-- Selecionar Destino --</option>
-        <option value="todos">Todos os usuários</option>
-        <option value="usuario1@example.com">usuario1@example.com</option>
-        <option value="usuario2@example.com">usuario2@example.com</option>
-        <!-- Adicione mais usuários conforme necessário -->
-      </select>
-      <button type="submit">Enviar</button>
+      <button type="submit">Enviar Notificação</button>
     </form>
 
-    <?php if (isset($mensagemSucesso)): ?>
-      <div class="success"><?= $mensagemSucesso ?></div>
+    <?php if ($status): ?>
+      <div class="status"><?= htmlspecialchars($status) ?></div>
     <?php endif; ?>
   </div>
-
 </body>
 </html>
-
 
